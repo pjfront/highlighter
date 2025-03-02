@@ -5,18 +5,11 @@
   "description": "Shows word and character counts of highlighted text",
   "permissions": [
     "activeTab",
-    "storage",
-    "scripting",
-    "tabs",
-    "clipboardRead"
-  ],
-  "host_permissions": [
-    "https://docs.google.com/*"
+    "storage"
   ],
   "action": {
     "default_icon": "images/icon.svg",
-    "default_title": "Text Highlighter Stats",
-    "default_popup": "popup.html"
+    "default_title": "Text Highlighter Stats"
   },
   "options_ui": {
     "page": "options.html",
@@ -26,18 +19,7 @@
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"],
-      "css": ["styles.css"],
-      "exclude_matches": ["https://docs.google.com/*"]
-    }
-  ],
-  "background": {
-    "service_worker": "background.js",
-    "type": "module"
-  },
-  "web_accessible_resources": [
-    {
-      "resources": ["google-docs-simple.js", "images/*"],
-      "matches": ["<all_urls>"]
+      "css": ["styles.css"]
     }
   ],
   "icons": {
