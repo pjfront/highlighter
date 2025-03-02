@@ -19,6 +19,7 @@ function injectGoogleDocsScript(tabId) {
     files: ['google-docs-simple.js']
   }).then(() => {
     debugLog('Successfully injected Google Docs script file');
+    return true;
   }).catch(err => {
     debugLog('Error injecting Google Docs script file:', err);
     
@@ -27,7 +28,7 @@ function injectGoogleDocsScript(tabId) {
     
     // Define the script to inject
     const scriptToInject = `
-      console.log('Google Docs Script Injected Directly');
+      console.log('[Text Highlighter Stats] Google Docs Script Injected Directly');
       
       // Create the stats box
       const statsBox = document.createElement('div');
@@ -74,7 +75,7 @@ function injectGoogleDocsScript(tabId) {
         const selection = window.getSelection();
         const text = selection ? selection.toString() : '';
         
-        console.log('Selection text:', text ? text.substring(0, 20) + '...' : 'none');
+        console.log('[Text Highlighter Stats] Selection text:', text ? text.substring(0, 20) + '...' : 'none');
         
         if (!text) {
           statsBox.style.display = 'none';
@@ -117,11 +118,11 @@ function injectGoogleDocsScript(tabId) {
       setInterval(updateStats, 1000);
       
       // Log that the script is running
-      console.log('Google Docs script is running');
+      console.log('[Text Highlighter Stats] Google Docs script is running');
     `;
     
     // Inject the script directly
-    chrome.scripting.executeScript({
+    return chrome.scripting.executeScript({
       target: { tabId: tabId },
       world: "MAIN",
       func: function(scriptCode) {
@@ -129,13 +130,15 @@ function injectGoogleDocsScript(tabId) {
         const scriptElement = document.createElement('script');
         scriptElement.textContent = scriptCode;
         document.head.appendChild(scriptElement);
-        console.log('Script element injected into page');
+        console.log('[Text Highlighter Stats] Script element injected into page');
       },
       args: [scriptToInject]
     }).then(() => {
       debugLog('Successfully injected script element');
+      return true;
     }).catch(err => {
       debugLog('Error injecting script element:', err);
+      throw err;
     });
   });
 }
@@ -151,7 +154,9 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       
       // Wait a moment for the page to fully initialize
       setTimeout(() => {
-        injectGoogleDocsScript(tabId);
+        injectGoogleDocsScript(tabId)
+          .then(() => debugLog('Script injection after page load completed successfully'))
+          .catch(err => debugLog('Script injection after page load failed:', err));
       }, 2000);
     }
   }
@@ -164,7 +169,9 @@ chrome.action.onClicked.addListener((tab) => {
   // If it's a Google Docs document, inject the script
   if (tab.url && tab.url.includes('docs.google.com/document')) {
     debugLog('Google Docs document detected, injecting script');
-    injectGoogleDocsScript(tab.id);
+    injectGoogleDocsScript(tab.id)
+      .then(() => debugLog('Script injection after icon click completed successfully'))
+      .catch(err => debugLog('Script injection after icon click failed:', err));
   }
 });
 
@@ -175,16 +182,38 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'injectScript' && message.tabId) {
     debugLog('Received request to inject script into tab', message.tabId);
     
-    try {
-      injectGoogleDocsScript(message.tabId);
-      sendResponse({ success: true });
-    } catch (error) {
-      debugLog('Error handling inject script request:', error);
-      sendResponse({ success: false, error: error.message });
-    }
+    // Check if the tab exists
+    chrome.tabs.get(message.tabId, (tab) => {
+      if (chrome.runtime.lastError) {
+        debugLog('Error getting tab:', chrome.runtime.lastError);
+        sendResponse({ 
+          success: false, 
+          error: 'Tab not found: ' + chrome.runtime.lastError.message 
+        });
+        return;
+      }
+      
+      // Inject the script
+      injectGoogleDocsScript(message.tabId)
+        .then(() => {
+          debugLog('Script injection from popup completed successfully');
+          sendResponse({ success: true });
+        })
+        .catch(err => {
+          debugLog('Script injection from popup failed:', err);
+          sendResponse({ 
+            success: false, 
+            error: err.message || 'Unknown error during script injection' 
+          });
+        });
+    });
     
     return true; // Indicates we'll send a response asynchronously
   }
+  
+  // If we don't handle the message, inform the sender
+  sendResponse({ success: false, error: 'Unknown message action' });
+  return true;
 });
 
 // Log that the background script has loaded

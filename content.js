@@ -9,6 +9,8 @@ function debugLog(...args) {
   }
 }
 
+debugLog('Content script starting');
+
 // Create the stats box
 const statsBox = document.createElement('div');
 statsBox.id = 'highlighter-stats-box';
@@ -29,6 +31,8 @@ statsBox.style.minWidth = '120px';
 statsBox.style.display = 'none';
 document.body.appendChild(statsBox);
 
+debugLog('Stats box created and added to document');
+
 // Function to count words
 function countWords(text) {
   return text.trim().split(/\s+/).filter(word => word.length > 0).length;
@@ -36,6 +40,8 @@ function countWords(text) {
 
 // Function to update stats
 function updateStats() {
+  debugLog('Checking for selection');
+  
   const selection = window.getSelection();
   const text = selection ? selection.toString() : '';
   
@@ -67,6 +73,40 @@ function updateStats() {
   
   // Show the box
   statsBox.style.display = 'block';
+  debugLog('Stats box updated and displayed');
+}
+
+// Function to check if the stats box exists
+function checkStatsBox() {
+  const boxExists = document.getElementById('highlighter-stats-box');
+  
+  debugLog('Stats box check:', boxExists ? 'exists' : 'MISSING');
+  
+  if (!boxExists) {
+    debugLog('Recreating stats box');
+    
+    // Recreate stats box
+    const newStatsBox = document.createElement('div');
+    newStatsBox.id = 'highlighter-stats-box';
+    newStatsBox.style.position = 'fixed';
+    newStatsBox.style.top = '20px';
+    newStatsBox.style.right = '20px';
+    newStatsBox.style.padding = '10px';
+    newStatsBox.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+    newStatsBox.style.color = 'white';
+    newStatsBox.style.borderRadius = '5px';
+    newStatsBox.style.fontFamily = 'Arial, sans-serif';
+    newStatsBox.style.fontSize = '14px';
+    newStatsBox.style.zIndex = '9999999';
+    newStatsBox.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.2)';
+    newStatsBox.style.pointerEvents = 'none';
+    newStatsBox.style.userSelect = 'none';
+    newStatsBox.style.minWidth = '120px';
+    newStatsBox.style.display = 'none';
+    document.body.appendChild(newStatsBox);
+    
+    debugLog('Stats box recreated');
+  }
 }
 
 // Set up event listeners
@@ -76,6 +116,12 @@ document.addEventListener('keyup', function(e) {
     updateStats();
   }
 });
+
+// Check periodically for selection and stats box
+setInterval(() => {
+  updateStats();
+  checkStatsBox();
+}, 1000);
 
 // Log that the script is running
 debugLog('Content script loaded and running'); 
