@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Text Highlighter Stats",
+  "version": "1.0",
+  "description": "Shows word and character count of highlighted text",
+  "permissions": ["activeTab", "storage"],
+  "action": {
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    },
+    "default_title": "Text Highlighter Stats"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ],
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  }
+} 

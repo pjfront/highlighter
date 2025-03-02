@@ -1,0 +1,9 @@
+For a complete extension, you need to create the following icon files:
+
+1. icon16.png (16x16 pixels)
+2. icon48.png (48x48 pixels)
+3. icon128.png (128x128 pixels)
+
+You can use the generate_icons.html file in the root directory to help create these icons.
+
+Alternatively, you can create your own icons using any image editing software and save them with these names in this directory. 
