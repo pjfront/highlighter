@@ -1,6 +1,6 @@
 // Google Docs script for Text Highlighter Stats extension
 
-console.log('[Text Highlighter Stats - Google Docs] Script loaded');
+console.log('[Text Highlighter Stats] Google Docs Script Injected');
 
 // Wait for the document to be fully loaded
 function initializeScript() {
@@ -27,6 +27,24 @@ function initializeScript() {
   document.body.appendChild(statsBox);
   
   console.log('[Text Highlighter Stats - Google Docs] Stats box created and added to document');
+  
+  // Add a manual copy button
+  const copyButton = document.createElement('button');
+  copyButton.id = 'gdocs-highlighter-copy-button';
+  copyButton.textContent = 'Copy & Count';
+  copyButton.style.position = 'fixed';
+  copyButton.style.bottom = '60px';
+  copyButton.style.right = '20px';
+  copyButton.style.zIndex = '9999999';
+  copyButton.style.padding = '5px 10px';
+  copyButton.style.backgroundColor = '#4285F4';
+  copyButton.style.color = 'white';
+  copyButton.style.border = 'none';
+  copyButton.style.borderRadius = '4px';
+  copyButton.style.cursor = 'pointer';
+  document.body.appendChild(copyButton);
+  
+  console.log('[Text Highlighter Stats - Google Docs] Copy button created and added to document');
   
   // Add a debug button
   const button = document.createElement('button');
@@ -72,21 +90,6 @@ function initializeScript() {
     const selectionElements = document.querySelectorAll('.kix-selection-overlay');
     if (selectionElements.length > 0) {
       console.log('[Text Highlighter Stats - Google Docs] Found selection overlay elements:', selectionElements.length);
-      
-      // Try to get text from the clipboard (this is a workaround)
-      try {
-        navigator.clipboard.readText().then(clipText => {
-          if (clipText) {
-            console.log('[Text Highlighter Stats - Google Docs] Found text in clipboard:', 
-              clipText.substring(0, 20) + (clipText.length > 20 ? '...' : ''));
-            updateStatsWithText(clipText);
-          }
-        }).catch(err => {
-          console.log('[Text Highlighter Stats - Google Docs] Error reading clipboard:', err);
-        });
-      } catch (error) {
-        console.log('[Text Highlighter Stats - Google Docs] Error accessing clipboard:', error);
-      }
     }
     
     // Method 3: Check if there's a visible cursor, which might indicate selection
@@ -96,6 +99,37 @@ function initializeScript() {
     }
     
     return text; // Return whatever we found (might be empty)
+  }
+  
+  // Function to manually trigger copy and then read from clipboard
+  function manualCopyAndCount() {
+    console.log('[Text Highlighter Stats] Manual copy triggered');
+    
+    // Simulate Ctrl+C keyboard shortcut
+    const keyboardEvent = new KeyboardEvent('keydown', {
+      key: 'c',
+      code: 'KeyC',
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true
+    });
+    
+    document.dispatchEvent(keyboardEvent);
+    
+    // Wait a moment for the copy to complete
+    setTimeout(() => {
+      // Try to read from clipboard
+      navigator.clipboard.readText()
+        .then(text => {
+          console.log('[Text Highlighter Stats] Got text from clipboard:', 
+            text ? text.substring(0, 20) + (text.length > 20 ? '...' : '') : 'none');
+          updateStatsWithText(text);
+        })
+        .catch(err => {
+          console.log('[Text Highlighter Stats] Error reading clipboard:', err);
+          alert('Please manually copy (Ctrl+C) and then click the button again.');
+        });
+    }, 100);
   }
   
   // Function to update stats with specific text
@@ -142,12 +176,14 @@ function initializeScript() {
   function checkElements() {
     const boxExists = document.getElementById('gdocs-highlighter-stats-box');
     const buttonExists = document.getElementById('gdocs-highlighter-debug-button');
+    const copyButtonExists = document.getElementById('gdocs-highlighter-copy-button');
     
     console.log('[Text Highlighter Stats - Google Docs] Elements check:', 
       boxExists ? 'Stats box exists' : 'Stats box MISSING',
-      buttonExists ? 'Debug button exists' : 'Debug button MISSING');
+      buttonExists ? 'Debug button exists' : 'Debug button MISSING',
+      copyButtonExists ? 'Copy button exists' : 'Copy button MISSING');
     
-    if (!boxExists || !buttonExists) {
+    if (!boxExists || !buttonExists || !copyButtonExists) {
       console.log('[Text Highlighter Stats - Google Docs] Recreating missing elements');
       
       // Recreate stats box if missing
@@ -171,6 +207,28 @@ function initializeScript() {
         newStatsBox.style.display = 'none';
         document.body.appendChild(newStatsBox);
         console.log('[Text Highlighter Stats - Google Docs] Stats box recreated');
+      }
+      
+      // Recreate copy button if missing
+      if (!copyButtonExists) {
+        const newCopyButton = document.createElement('button');
+        newCopyButton.id = 'gdocs-highlighter-copy-button';
+        newCopyButton.textContent = 'Copy & Count';
+        newCopyButton.style.position = 'fixed';
+        newCopyButton.style.bottom = '60px';
+        newCopyButton.style.right = '20px';
+        newCopyButton.style.zIndex = '9999999';
+        newCopyButton.style.padding = '5px 10px';
+        newCopyButton.style.backgroundColor = '#4285F4';
+        newCopyButton.style.color = 'white';
+        newCopyButton.style.border = 'none';
+        newCopyButton.style.borderRadius = '4px';
+        newCopyButton.style.cursor = 'pointer';
+        document.body.appendChild(newCopyButton);
+        console.log('[Text Highlighter Stats - Google Docs] Copy button recreated');
+        
+        // Add event listener to the new button
+        newCopyButton.addEventListener('click', manualCopyAndCount);
       }
       
       // Recreate debug button if missing
@@ -217,8 +275,37 @@ function initializeScript() {
     console.log('[Text Highlighter Stats - Google Docs] MutationObserver set up');
   }
   
+  // Set up keyboard shortcut listener for Ctrl+C
+  function setupKeyboardShortcuts() {
+    console.log('[Text Highlighter Stats - Google Docs] Setting up keyboard shortcuts');
+    
+    document.addEventListener('keydown', (e) => {
+      // Check for Ctrl+C (copy)
+      if (e.ctrlKey && e.key === 'c') {
+        console.log('[Text Highlighter Stats - Google Docs] Detected Ctrl+C');
+        
+        // Wait a moment for the copy to complete
+        setTimeout(() => {
+          // Try to read from clipboard
+          navigator.clipboard.readText()
+            .then(text => {
+              console.log('[Text Highlighter Stats - Google Docs] Got text from clipboard after Ctrl+C:', 
+                text ? text.substring(0, 20) + (text.length > 20 ? '...' : '') : 'none');
+              updateStatsWithText(text);
+            })
+            .catch(err => {
+              console.log('[Text Highlighter Stats - Google Docs] Error reading clipboard after Ctrl+C:', err);
+            });
+        }, 100);
+      }
+    });
+    
+    console.log('[Text Highlighter Stats - Google Docs] Keyboard shortcuts set up');
+  }
+  
   // Set up event listeners
   button.addEventListener('click', updateStats);
+  copyButton.addEventListener('click', manualCopyAndCount);
   document.addEventListener('mouseup', updateStats);
   document.addEventListener('keyup', function(e) {
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown', 'Shift'].includes(e.key)) {
@@ -228,6 +315,9 @@ function initializeScript() {
   
   // Set up the MutationObserver
   setupMutationObserver();
+  
+  // Set up keyboard shortcuts
+  setupKeyboardShortcuts();
   
   // Check periodically for selection and elements
   setInterval(() => {

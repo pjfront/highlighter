@@ -6,61 +6,93 @@
     body {
       font-family: Arial, sans-serif;
       width: 300px;
-      padding: 15px;
+      padding: 10px;
+      margin: 0;
     }
     h1 {
       font-size: 18px;
       margin-top: 0;
+      color: #333;
+    }
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 10px;
     }
     button {
+      padding: 8px 12px;
       background-color: #4285F4;
       color: white;
       border: none;
-      padding: 8px 12px;
       border-radius: 4px;
       cursor: pointer;
-      margin: 5px 0;
-      width: 100%;
+      font-size: 14px;
     }
     button:hover {
-      background-color: #3367d6;
+      background-color: #3367D6;
     }
     .status {
-      margin: 10px 0;
-      padding: 10px;
-      background-color: #f5f5f5;
+      padding: 8px;
       border-radius: 4px;
+      margin-bottom: 10px;
+      font-size: 14px;
     }
-    .debug-log {
-      margin-top: 15px;
+    .status-ok {
+      background-color: #e6f4ea;
+      color: #137333;
+    }
+    .status-error {
+      background-color: #f8d7da;
+      color: #b71c1c;
+    }
+    .log-container {
+      border: 1px solid #ddd;
+      border-radius: 4px;
       max-height: 200px;
       overflow-y: auto;
-      border: 1px solid #ccc;
-      padding: 10px;
-      font-family: monospace;
-      font-size: 12px;
-      background-color: #f9f9f9;
+      margin-top: 10px;
     }
     .log-entry {
-      margin-bottom: 5px;
+      padding: 4px 8px;
+      font-size: 12px;
       border-bottom: 1px solid #eee;
-      padding-bottom: 5px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+    .log-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .log-title {
+      font-weight: bold;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
   <h1>Text Highlighter Stats</h1>
   
-  <div class="status" id="status">
-    Checking status...
+  <div id="status" class="status">Checking current tab...</div>
+  
+  <div class="button-container">
+    <button id="inject-button">Inject Google Docs Script</button>
+    <button id="check-selection-button">Check Current Selection</button>
   </div>
   
-  <button id="injectScript">Inject Google Docs Script</button>
-  <button id="checkSelection">Check Current Selection</button>
-  <button id="clearLogs">Clear Debug Logs</button>
+  <div class="log-header">
+    <div class="log-title">Debug Logs</div>
+    <button id="clear-logs-button">Clear Logs</button>
+  </div>
   
-  <div class="debug-log" id="debugLog">
-    <div class="log-entry">Debug logs will appear here...</div>
+  <div class="log-container">
+    <div id="debug-logs"></div>
   </div>
   
   <script src="popup.js"></script>

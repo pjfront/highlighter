@@ -1,231 +1,150 @@
 // Popup script for Text Highlighter Stats extension
 
-// Debug logs array
-let debugLogs = [];
+// Array to store debug logs
+const debugLogs = [];
 
 // Function to add a log entry
 function addLogEntry(message) {
   const timestamp = new Date().toLocaleTimeString();
-  const logEntry = `${timestamp}: ${message}`;
-  debugLogs.push(logEntry);
+  debugLogs.unshift({ timestamp, message }); // Add to the beginning
   
-  // Update the log display
+  // Keep only the most recent 50 logs
+  if (debugLogs.length > 50) {
+    debugLogs.pop();
+  }
+  
   updateLogDisplay();
-  
-  // Also log to console for debugging
-  console.log(`[Text Highlighter Stats - Popup] ${message}`);
 }
 
 // Function to update the log display
 function updateLogDisplay() {
-  const logElement = document.getElementById('debugLog');
-  if (!logElement) {
-    console.error('Debug log element not found');
-    return;
-  }
+  const logContainer = document.getElementById('debug-logs');
+  logContainer.innerHTML = '';
   
-  logElement.innerHTML = '';
-  
-  if (debugLogs.length === 0) {
-    logElement.innerHTML = '<div class="log-entry">No logs yet...</div>';
-    return;
-  }
-  
-  // Display the most recent logs first (up to 50)
-  const logsToShow = debugLogs.slice(-50).reverse();
-  
-  for (const log of logsToShow) {
-    const logEntryElement = document.createElement('div');
-    logEntryElement.className = 'log-entry';
-    logEntryElement.textContent = log;
-    logElement.appendChild(logEntryElement);
-  }
+  debugLogs.forEach(log => {
+    const logEntry = document.createElement('div');
+    logEntry.className = 'log-entry';
+    logEntry.textContent = `${log.timestamp}: ${log.message}`;
+    logContainer.appendChild(logEntry);
+  });
 }
 
-// Function to check the current tab
+// Function to check if the current tab is a Google Docs document
 async function checkCurrentTab() {
+  const statusElement = document.getElementById('status');
+  
   try {
-    addLogEntry('Checking current tab...');
-    
-    // Get the current tab
+    // Get the active tab
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    
-    if (!tabs || tabs.length === 0) {
-      addLogEntry('No active tab found');
-      
-      const statusElement = document.getElementById('status');
-      if (statusElement) {
-        statusElement.textContent = 'No active tab found';
-        statusElement.style.backgroundColor = '#f8d7da';
-      }
-      
-      return null;
-    }
-    
     const currentTab = tabs[0];
-    addLogEntry(`Current tab: ${currentTab.id} - ${currentTab.url}`);
     
-    // Update status
-    const statusElement = document.getElementById('status');
-    if (!statusElement) {
-      addLogEntry('Status element not found');
-      return currentTab;
-    }
+    // Check if it's a Google Docs document
+    const isGoogleDocs = currentTab.url.includes('docs.google.com/document');
     
-    if (currentTab.url && currentTab.url.includes('docs.google.com/document')) {
-      statusElement.textContent = 'Google Docs document detected!';
-      statusElement.style.backgroundColor = '#e6f4ea';
-      addLogEntry('Google Docs document detected: ' + currentTab.url);
+    // Update the status
+    if (isGoogleDocs) {
+      statusElement.textContent = 'Google Docs document detected';
+      statusElement.className = 'status-ok';
     } else {
-      statusElement.textContent = 'Not a Google Docs document.';
-      statusElement.style.backgroundColor = '#f5f5f5';
-      addLogEntry('Not a Google Docs document: ' + currentTab.url);
+      statusElement.textContent = 'Not a Google Docs document';
+      statusElement.className = 'status-error';
     }
     
-    return currentTab;
+    // Log the result
+    addLogEntry(`Current tab is ${isGoogleDocs ? '' : 'not '}a Google Docs document`);
+    
+    return { isGoogleDocs, tabId: currentTab.id };
   } catch (error) {
-    addLogEntry('Error checking current tab: ' + error.message);
-    console.error('Error checking current tab:', error);
-    return null;
+    statusElement.textContent = 'Error checking tab';
+    statusElement.className = 'status-error';
+    addLogEntry(`Error checking tab: ${error.message}`);
+    return { isGoogleDocs: false, tabId: null };
   }
 }
 
 // Function to inject the script into the current tab
 async function injectScript() {
+  const { isGoogleDocs, tabId } = await checkCurrentTab();
+  
+  if (!isGoogleDocs || !tabId) {
+    addLogEntry('Cannot inject script: Not a Google Docs document');
+    return;
+  }
+  
+  addLogEntry('Requesting script injection...');
+  
   try {
-    addLogEntry('Starting script injection process...');
+    // Send a message to the background script to inject the script
+    const response = await chrome.runtime.sendMessage({ 
+      action: 'injectScript', 
+      tabId 
+    });
     
-    const currentTab = await checkCurrentTab();
-    
-    if (!currentTab) {
-      addLogEntry('No current tab found, cannot inject script');
-      return;
+    if (response.success) {
+      addLogEntry('Script injection successful');
+    } else {
+      addLogEntry(`Script injection failed: ${response.error || 'Unknown error'}`);
     }
-    
-    if (!currentTab.url || !currentTab.url.includes('docs.google.com/document')) {
-      addLogEntry('Not a Google Docs document, skipping injection');
-      return;
-    }
-    
-    addLogEntry(`Requesting script injection for tab ${currentTab.id}...`);
-    
-    // Send a message to the background script
-    chrome.runtime.sendMessage(
-      { 
-        action: 'injectScript', 
-        tabId: currentTab.id 
-      }, 
-      (response) => {
-        if (chrome.runtime.lastError) {
-          addLogEntry('Error sending message: ' + chrome.runtime.lastError.message);
-          return;
-        }
-        
-        if (response && response.success) {
-          addLogEntry('Script injection requested successfully');
-        } else {
-          addLogEntry('Script injection request failed: ' + (response ? response.error : 'Unknown error'));
-        }
-      }
-    );
   } catch (error) {
-    addLogEntry('Error injecting script: ' + error.message);
-    console.error('Error injecting script:', error);
+    addLogEntry(`Error sending injection request: ${error.message}`);
   }
 }
 
-// Function to check the current selection
+// Function to check for selection in the current tab
 async function checkSelection() {
+  const { tabId } = await checkCurrentTab();
+  
+  if (!tabId) {
+    addLogEntry('Cannot check selection: Invalid tab');
+    return;
+  }
+  
+  addLogEntry('Checking for text selection...');
+  
   try {
-    addLogEntry('Starting selection check process...');
-    
-    const currentTab = await checkCurrentTab();
-    
-    if (!currentTab) {
-      addLogEntry('No current tab found, cannot check selection');
-      return;
-    }
-    
-    addLogEntry(`Requesting selection check for tab ${currentTab.id}...`);
-    
-    // Execute a script to check the selection
-    chrome.scripting.executeScript({
-      target: { tabId: currentTab.id },
+    // Execute a script to check for selection
+    const results = await chrome.scripting.executeScript({
+      target: { tabId },
       func: () => {
         const selection = window.getSelection();
         const text = selection ? selection.toString() : '';
-        
-        // Log to the page console
-        console.log('[Text Highlighter Stats - Selection Check]', 
-          text ? `Selection found: "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}" (${text.length} chars)` : 'No selection found');
-        
-        return { 
-          hasSelection: !!text, 
+        return {
+          hasSelection: text.length > 0,
           text: text.substring(0, 50) + (text.length > 50 ? '...' : ''),
           length: text.length
         };
       }
-    }).then((results) => {
-      if (results && results[0] && results[0].result) {
-        const result = results[0].result;
-        if (result.hasSelection) {
-          addLogEntry(`Selection found: "${result.text}" (${result.length} chars)`);
-        } else {
-          addLogEntry('No text currently selected');
-        }
-      } else {
-        addLogEntry('Failed to check selection: No results returned');
-      }
-    }).catch((error) => {
-      addLogEntry('Error executing selection check: ' + error.message);
-      console.error('Error executing selection check:', error);
     });
+    
+    const result = results[0].result;
+    
+    if (result.hasSelection) {
+      addLogEntry(`Selection found: "${result.text}" (${result.length} chars)`);
+    } else {
+      addLogEntry('No text selection found');
+    }
   } catch (error) {
-    addLogEntry('Error checking selection: ' + error.message);
-    console.error('Error checking selection:', error);
+    addLogEntry(`Error checking selection: ${error.message}`);
   }
 }
 
 // Function to clear logs
 function clearLogs() {
-  debugLogs = [];
+  debugLogs.length = 0;
   updateLogDisplay();
   addLogEntry('Logs cleared');
 }
 
-// Set up event listeners when the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', () => {
-  addLogEntry('Popup DOM loaded');
-  
-  // Check the current tab when the popup opens
-  checkCurrentTab().then(() => {
-    addLogEntry('Initial tab check completed');
-  }).catch(error => {
-    addLogEntry('Error during initial tab check: ' + error.message);
-  });
+// Set up event listeners when the popup is loaded
+document.addEventListener('DOMContentLoaded', async () => {
+  // Check the current tab
+  await checkCurrentTab();
   
   // Set up button event listeners
-  const injectButton = document.getElementById('injectScript');
-  if (injectButton) {
-    injectButton.addEventListener('click', injectScript);
-    addLogEntry('Inject script button listener added');
-  } else {
-    addLogEntry('WARNING: Inject script button not found');
-  }
+  document.getElementById('inject-button').addEventListener('click', injectScript);
+  document.getElementById('check-selection-button').addEventListener('click', checkSelection);
+  document.getElementById('clear-logs-button').addEventListener('click', clearLogs);
   
-  const checkButton = document.getElementById('checkSelection');
-  if (checkButton) {
-    checkButton.addEventListener('click', checkSelection);
-    addLogEntry('Check selection button listener added');
-  } else {
-    addLogEntry('WARNING: Check selection button not found');
-  }
-  
-  const clearButton = document.getElementById('clearLogs');
-  if (clearButton) {
-    clearButton.addEventListener('click', clearLogs);
-    addLogEntry('Clear logs button listener added');
-  } else {
-    addLogEntry('WARNING: Clear logs button not found');
-  }
+  // Add initial log
+  addLogEntry('Popup opened');
 }); 
