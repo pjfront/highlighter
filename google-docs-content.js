@@ -5,8 +5,98 @@ const DEBUG = true;
 
 function debugLog(...args) {
   if (DEBUG) {
-    console.log('[Text Highlighter Stats]', ...args);
+    console.log('[Text Highlighter Stats - GDocs]', ...args);
   }
+}
+
+// Log that the script has loaded
+debugLog('Google Docs content script loaded');
+
+// Create the stats box immediately
+let statsBox = null;
+
+// Function to create the stats box
+function createStatsBox() {
+  debugLog('Creating stats box in Google Docs');
+  
+  // Check if the box already exists
+  if (statsBox) {
+    return statsBox;
+  }
+  
+  // Create the box
+  statsBox = document.createElement('div');
+  statsBox.id = 'gdocs-highlighter-stats-box';
+  statsBox.style.position = 'fixed';
+  statsBox.style.top = '60px'; // Below the Google Docs toolbar
+  statsBox.style.right = '20px';
+  statsBox.style.padding = '10px';
+  statsBox.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+  statsBox.style.color = 'white';
+  statsBox.style.borderRadius = '5px';
+  statsBox.style.fontFamily = 'Arial, sans-serif';
+  statsBox.style.fontSize = '14px';
+  statsBox.style.zIndex = '9999999';
+  statsBox.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.2)';
+  statsBox.style.transition = 'all 0.3s ease';
+  statsBox.style.pointerEvents = 'none';
+  statsBox.style.userSelect = 'none';
+  statsBox.style.minWidth = '120px';
+  statsBox.style.textAlign = 'left';
+  statsBox.style.display = 'none';
+  
+  // Add to the document
+  document.body.appendChild(statsBox);
+  debugLog('Stats box created and added to document');
+  
+  return statsBox;
+}
+
+// Create the stats box immediately
+createStatsBox();
+
+// Function to count words in a string
+function countWords(text) {
+  return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+}
+
+// Function to update the stats box with text
+function updateStatsBoxWithText(text) {
+  if (!statsBox) {
+    statsBox = createStatsBox();
+  }
+  
+  if (!text) {
+    statsBox.style.display = 'none';
+    return;
+  }
+  
+  // Clear previous content
+  statsBox.innerHTML = '';
+  
+  // Calculate stats
+  const wordCount = countWords(text);
+  const charCount = text.length;
+  const charCountNoSpaces = text.replace(/\s/g, '').length;
+  
+  // Add word count
+  const wordDiv = document.createElement('div');
+  wordDiv.textContent = `Words: ${wordCount}`;
+  wordDiv.style.margin = '2px 0';
+  wordDiv.style.whiteSpace = 'nowrap';
+  statsBox.appendChild(wordDiv);
+  
+  // Add character count
+  const charDiv = document.createElement('div');
+  charDiv.textContent = `Characters: ${charCount}`;
+  charDiv.style.margin = '2px 0';
+  charDiv.style.whiteSpace = 'nowrap';
+  statsBox.appendChild(charDiv);
+  
+  // Show the box
+  statsBox.style.display = 'block';
+  
+  debugLog('Updated stats box with text:', text.substring(0, 20) + (text.length > 20 ? '...' : ''));
 }
 
 // Function to extract text from Google Docs selection
@@ -103,105 +193,15 @@ function getGoogleDocsSelectedText() {
   return '';
 }
 
-// Create a stats box directly in the Google Docs page
-function createStatsBox() {
-  debugLog('Creating stats box in Google Docs');
-  
-  // Check if the box already exists
-  let statsBox = document.getElementById('gdocs-highlighter-stats-box');
-  if (statsBox) {
-    return statsBox;
-  }
-  
-  // Create the box
-  statsBox = document.createElement('div');
-  statsBox.id = 'gdocs-highlighter-stats-box';
-  statsBox.style.position = 'fixed';
-  statsBox.style.top = '60px'; // Below the Google Docs toolbar
-  statsBox.style.right = '20px';
-  statsBox.style.padding = '10px';
-  statsBox.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-  statsBox.style.color = 'white';
-  statsBox.style.borderRadius = '5px';
-  statsBox.style.fontFamily = 'Arial, sans-serif';
-  statsBox.style.fontSize = '14px';
-  statsBox.style.zIndex = '9999999';
-  statsBox.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.2)';
-  statsBox.style.transition = 'all 0.3s ease';
-  statsBox.style.pointerEvents = 'none';
-  statsBox.style.userSelect = 'none';
-  statsBox.style.minWidth = '120px';
-  statsBox.style.textAlign = 'left';
-  statsBox.style.display = 'none';
-  
-  // Add to the document
-  document.body.appendChild(statsBox);
-  debugLog('Stats box created and added to document');
-  
-  return statsBox;
-}
-
-// Function to count words in a string
-function countWords(text) {
-  return text.trim().split(/\s+/).filter(word => word.length > 0).length;
-}
-
-// Function to update the stats box with text
-function updateStatsBoxWithText(text) {
-  const statsBox = createStatsBox();
-  
-  if (!text) {
-    statsBox.style.display = 'none';
-    return;
-  }
-  
-  // Clear previous content
-  statsBox.innerHTML = '';
-  
-  // Calculate stats
-  const wordCount = countWords(text);
-  const charCount = text.length;
-  const charCountNoSpaces = text.replace(/\s/g, '').length;
-  
-  // Add word count
-  const wordDiv = document.createElement('div');
-  wordDiv.textContent = `Words: ${wordCount}`;
-  wordDiv.style.margin = '2px 0';
-  wordDiv.style.whiteSpace = 'nowrap';
-  statsBox.appendChild(wordDiv);
-  
-  // Add character count
-  const charDiv = document.createElement('div');
-  charDiv.textContent = `Characters: ${charCount}`;
-  charDiv.style.margin = '2px 0';
-  charDiv.style.whiteSpace = 'nowrap';
-  statsBox.appendChild(charDiv);
-  
-  // Show the box
-  statsBox.style.display = 'block';
-  
-  debugLog('Updated stats box with text:', text.substring(0, 20) + (text.length > 20 ? '...' : ''));
-}
-
-// Function to send the selected text to the main content script
-function sendSelectedTextToContentScript() {
+// Function to check for selection and update the stats box
+function checkForSelection() {
   const selectedText = getGoogleDocsSelectedText();
   
   if (selectedText) {
-    debugLog('Sending selected text to content script');
-    
-    // Update our own stats box
+    debugLog('Found selected text, updating stats box');
     updateStatsBoxWithText(selectedText);
-    
-    // Also send to the main content script (as a backup)
-    const event = new CustomEvent('googleDocsTextSelected', {
-      detail: { text: selectedText }
-    });
-    
-    document.dispatchEvent(event);
   } else {
     // If no text is selected, hide the stats box
-    const statsBox = document.getElementById('gdocs-highlighter-stats-box');
     if (statsBox) {
       statsBox.style.display = 'none';
     }
@@ -210,8 +210,6 @@ function sendSelectedTextToContentScript() {
 
 // Add a manual trigger button for testing
 function addDebugButton() {
-  if (!DEBUG) return;
-  
   const button = document.createElement('button');
   button.textContent = 'Check Selection';
   button.style.position = 'fixed';
@@ -227,7 +225,7 @@ function addDebugButton() {
   
   button.addEventListener('click', function() {
     debugLog('Debug button clicked');
-    sendSelectedTextToContentScript();
+    checkForSelection();
   });
   
   document.body.appendChild(button);
@@ -238,23 +236,20 @@ function addDebugButton() {
 function setupGoogleDocsListeners() {
   debugLog('Setting up Google Docs listeners');
   
-  // Create the stats box
-  createStatsBox();
-  
-  // Add debug button if in debug mode
+  // Add debug button
   addDebugButton();
   
   // Listen for mouseup events
   document.addEventListener('mouseup', function(e) {
     debugLog('mouseup event detected');
-    setTimeout(sendSelectedTextToContentScript, 100); // Small delay to ensure selection is complete
+    setTimeout(checkForSelection, 100); // Small delay to ensure selection is complete
   });
   
   // Listen for keyup events that might change selection
   document.addEventListener('keyup', function(e) {
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown', 'Shift'].includes(e.key)) {
       debugLog('keyup event detected:', e.key);
-      setTimeout(sendSelectedTextToContentScript, 100);
+      setTimeout(checkForSelection, 100);
     }
   });
   
@@ -266,7 +261,7 @@ function setupGoogleDocsListeners() {
           (mutation.type === 'attributes' && mutation.target.classList && 
            mutation.target.classList.contains('kix-selection-overlay'))) {
         debugLog('Mutation detected that might indicate selection change');
-        setTimeout(sendSelectedTextToContentScript, 100);
+        setTimeout(checkForSelection, 100);
         break;
       }
     }
@@ -281,21 +276,21 @@ function setupGoogleDocsListeners() {
   });
   
   // Also check periodically for selections
-  setInterval(sendSelectedTextToContentScript, 1000);
+  setInterval(checkForSelection, 1000);
   
   debugLog('All Google Docs listeners set up');
 }
 
-// Initialize when the page is fully loaded
+// Initialize immediately
+debugLog('Starting immediate initialization');
+setupGoogleDocsListeners();
+
+// Also initialize when the page is fully loaded
 window.addEventListener('load', function() {
   debugLog('Window load event fired');
   // Give Google Docs some time to initialize
   setTimeout(function() {
-    debugLog('Starting Google Docs integration');
+    debugLog('Starting Google Docs integration after window load');
     setupGoogleDocsListeners();
   }, 2000);
-});
-
-// Also try to initialize immediately
-debugLog('Script loaded, attempting immediate initialization');
-setupGoogleDocsListeners(); 
+}); 
