@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate PNG Icons</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .canvas-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .canvas-item {
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4285F4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #3367d6;
+        }
+        .instructions {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        a {
+            display: block;
+            margin-top: 5px;
+            text-decoration: none;
+            color: #4285F4;
+            padding: 5px 10px;
+            border: 1px solid #4285F4;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        a:hover {
+            background-color: #4285F4;
+            color: white;
+        }
+        .note {
+            background-color: #fff8e1;
+            padding: 10px;
+            border-left: 4px solid #ffca28;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Generate PNG Icons for Text Highlighter Stats</h1>
+    
+    <div class="instructions">
+        <h2>Instructions:</h2>
+        <ol>
+            <li>Click the "Generate Icons" button below to create the icons</li>
+            <li>Right-click on each icon and select "Save image as..."</li>
+            <li>Save them with the following names in the "images" folder:
+                <ul>
+                    <li>16x16 icon as "icon16.png"</li>
+                    <li>48x48 icon as "icon48.png"</li>
+                    <li>128x128 icon as "icon128.png"</li>
+                </ul>
+            </li>
+            <li>After saving all icons, reload your extension in Chrome</li>
+        </ol>
+    </div>
+    
+    <button id="generateBtn">Generate Icons</button>
+    
+    <div class="canvas-container">
+        <div class="canvas-item">
+            <canvas id="canvas16" width="16" height="16"></canvas>
+            <div>16x16</div>
+            <a id="download16" href="#" download="icon16.png">Download icon16.png</a>
+        </div>
+        <div class="canvas-item">
+            <canvas id="canvas48" width="48" height="48"></canvas>
+            <div>48x48</div>
+            <a id="download48" href="#" download="icon48.png">Download icon48.png</a>
+        </div>
+        <div class="canvas-item">
+            <canvas id="canvas128" width="128" height="128"></canvas>
+            <div>128x128</div>
+            <a id="download128" href="#" download="icon128.png">Download icon128.png</a>
+        </div>
+    </div>
+    
+    <div class="note">
+        <strong>Note:</strong> If you're having trouble with the download links, you can also right-click on each canvas and select "Save image as..." to save the icons.
+    </div>
+    
+    <script>
+        function drawIcon(ctx, size) {
+            // Clear canvas
+            ctx.clearRect(0, 0, size, size);
+            
+            // Calculate padding and radius based on size
+            const padding = Math.max(1, Math.floor(size * 0.05));
+            const radius = Math.max(2, Math.floor(size * 0.15));
+            
+            // Draw a blue rounded square
+            ctx.fillStyle = '#4285F4';
+            ctx.beginPath();
+            ctx.moveTo(padding + radius, padding);
+            ctx.lineTo(size - padding - radius, padding);
+            ctx.arcTo(size - padding, padding, size - padding, padding + radius, radius);
+            ctx.lineTo(size - padding, size - padding - radius);
+            ctx.arcTo(size - padding, size - padding, size - padding - radius, size - padding, radius);
+            ctx.lineTo(padding + radius, size - padding);
+            ctx.arcTo(padding, size - padding, padding, size - padding - radius, radius);
+            ctx.lineTo(padding, padding + radius);
+            ctx.arcTo(padding, padding, padding + radius, padding, radius);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Add a white "H" in the center
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${Math.floor(size * 0.6)}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('H', size/2, size/2 - Math.floor(size * 0.05));
+            
+            // Add highlight bars
+            const barHeight = Math.max(1, Math.floor(size * 0.08));
+            const barRadius = Math.max(1, Math.floor(size * 0.04));
+            
+            // First highlight bar
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            const bar1Width = Math.floor(size * 0.7);
+            const bar1X = (size - bar1Width) / 2;
+            const bar1Y = Math.floor(size * 0.7);
+            
+            // Draw rounded rectangle (compatible with all browsers)
+            drawRoundedRect(ctx, bar1X, bar1Y, bar1Width, barHeight, barRadius);
+            
+            // Second highlight bar (shorter)
+            const bar2Width = Math.floor(size * 0.5);
+            const bar2X = (size - bar2Width) / 2;
+            const bar2Y = Math.floor(size * 0.85);
+            
+            // Draw rounded rectangle (compatible with all browsers)
+            drawRoundedRect(ctx, bar2X, bar2Y, bar2Width, barHeight, barRadius);
+        }
+        
+        // Helper function to draw rounded rectangles (for browser compatibility)
+        function drawRoundedRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.arcTo(x + width, y, x + width, y + radius, radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.arcTo(x + width, y + height, x + width - radius, y + height, radius);
+            ctx.lineTo(x + radius, y + height);
+            ctx.arcTo(x, y + height, x, y + height - radius, radius);
+            ctx.lineTo(x, y + radius);
+            ctx.arcTo(x, y, x + radius, y, radius);
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        document.getElementById('generateBtn').addEventListener('click', function() {
+            const sizes = [16, 48, 128];
+            
+            sizes.forEach(size => {
+                const canvas = document.getElementById(`canvas${size}`);
+                const ctx = canvas.getContext('2d');
+                
+                // Draw the icon
+                drawIcon(ctx, size);
+                
+                // Set download link
+                const downloadLink = document.getElementById(`download${size}`);
+                downloadLink.href = canvas.toDataURL('image/png');
+            });
+        });
+        
+        // Generate icons on page load
+        window.onload = function() {
+            document.getElementById('generateBtn').click();
+        };
+    </script>
+</body>
+</html> 

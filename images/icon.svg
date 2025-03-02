@@ -1,6 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="20" fill="#4285F4" />
-  <text x="64" y="80" font-family="Arial, sans-serif" font-size="100" font-weight="bold" text-anchor="middle" fill="white">H</text>
-  <rect x="30" y="90" width="68" height="10" rx="5" fill="white" />
-  <rect x="40" y="105" width="48" height="5" rx="2.5" fill="white" />
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background square -->
+  <rect x="0" y="0" width="128" height="128" rx="16" fill="#4285F4"/>
+  
+  <!-- Letter H -->
+  <text x="64" y="64" font-family="Arial, sans-serif" font-size="90" font-weight="bold" 
+        text-anchor="middle" dominant-baseline="central" fill="white">H</text>
+  
+  <!-- Decorative elements representing text highlighting -->
+  <rect x="20" y="90" width="88" height="10" rx="5" fill="rgba(255, 255, 255, 0.3)"/>
+  <rect x="30" y="110" width="68" height="10" rx="5" fill="rgba(255, 255, 255, 0.3)"/>
 </svg> 
