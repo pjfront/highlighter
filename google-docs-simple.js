@@ -51,13 +51,11 @@ function initializeScript() {
     return text.trim().split(/\s+/).filter(word => word.length > 0).length;
   }
   
-  // Function to get text from Google Docs
+  // Function to get Google Docs selection using a safer approach
   function getGoogleDocsSelection() {
     console.log('[Text Highlighter Stats - Google Docs] Attempting to get Google Docs selection');
     
-    // Try multiple methods to get the selection
-    
-    // Method 1: Direct window selection
+    // Method 1: Direct window selection (works in some cases)
     let selection = window.getSelection();
     let text = selection ? selection.toString() : '';
     
@@ -67,76 +65,41 @@ function initializeScript() {
       return text;
     }
     
-    // Method 2: Try to find the editor iframe
-    console.log('[Text Highlighter Stats - Google Docs] Looking for editor iframe');
+    // Method 2: Look for selection-related elements in the DOM
+    console.log('[Text Highlighter Stats - Google Docs] Looking for selection elements in DOM');
     
-    // Look for the editor iframe (there are several possible selectors)
-    const editorIframes = [
-      document.querySelector('.docs-texteventtarget-iframe'),
-      document.querySelector('.kix-appview-editor iframe'),
-      ...Array.from(document.querySelectorAll('iframe')).filter(iframe => 
-        iframe.id.includes('editor') || 
-        (iframe.className && iframe.className.includes('editor'))
-      )
-    ].filter(Boolean); // Remove null/undefined values
-    
-    console.log('[Text Highlighter Stats - Google Docs] Found', editorIframes.length, 'potential editor iframes');
-    
-    // Try each iframe
-    for (const iframe of editorIframes) {
-      try {
-        console.log('[Text Highlighter Stats - Google Docs] Trying iframe:', iframe.id || 'unnamed iframe');
-        
-        // Try to access the iframe's document
-        const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
-        const iframeSelection = iframeDocument.getSelection();
-        const iframeText = iframeSelection ? iframeSelection.toString() : '';
-        
-        if (iframeText) {
-          console.log('[Text Highlighter Stats - Google Docs] Found selection in iframe:', 
-            iframeText.substring(0, 20) + (iframeText.length > 20 ? '...' : ''));
-          return iframeText;
-        }
-      } catch (error) {
-        console.log('[Text Highlighter Stats - Google Docs] Error accessing iframe:', error.message);
-      }
-    }
-    
-    // Method 3: Look for text in the DOM that might be selected
-    console.log('[Text Highlighter Stats - Google Docs] Looking for selected text in DOM');
-    
-    // Look for elements that might contain selected text
-    const selectedElements = document.querySelectorAll('.kix-selection-overlay, .kix-cursor');
-    
-    if (selectedElements.length > 0) {
-      console.log('[Text Highlighter Stats - Google Docs] Found', selectedElements.length, 'selection elements');
+    // Look for the Google Docs selection overlay elements
+    const selectionElements = document.querySelectorAll('.kix-selection-overlay');
+    if (selectionElements.length > 0) {
+      console.log('[Text Highlighter Stats - Google Docs] Found selection overlay elements:', selectionElements.length);
       
-      // Try to get text from nearby elements
-      for (const element of selectedElements) {
-        const parentElement = element.parentElement;
-        if (parentElement) {
-          const nearbyText = parentElement.textContent;
-          if (nearbyText && nearbyText.trim()) {
-            console.log('[Text Highlighter Stats - Google Docs] Found nearby text:', 
-              nearbyText.substring(0, 20) + (nearbyText.length > 20 ? '...' : ''));
-            return nearbyText;
+      // Try to get text from the clipboard (this is a workaround)
+      try {
+        navigator.clipboard.readText().then(clipText => {
+          if (clipText) {
+            console.log('[Text Highlighter Stats - Google Docs] Found text in clipboard:', 
+              clipText.substring(0, 20) + (clipText.length > 20 ? '...' : ''));
+            updateStatsWithText(clipText);
           }
-        }
+        }).catch(err => {
+          console.log('[Text Highlighter Stats - Google Docs] Error reading clipboard:', err);
+        });
+      } catch (error) {
+        console.log('[Text Highlighter Stats - Google Docs] Error accessing clipboard:', error);
       }
     }
     
-    // No selection found
-    console.log('[Text Highlighter Stats - Google Docs] No selection found');
-    return '';
+    // Method 3: Check if there's a visible cursor, which might indicate selection
+    const cursorElements = document.querySelectorAll('.kix-cursor');
+    if (cursorElements.length > 0) {
+      console.log('[Text Highlighter Stats - Google Docs] Found cursor elements:', cursorElements.length);
+    }
+    
+    return text; // Return whatever we found (might be empty)
   }
   
-  // Function to update stats
-  function updateStats() {
-    console.log('[Text Highlighter Stats - Google Docs] Checking for selection');
-    
-    // Get text from Google Docs
-    const text = getGoogleDocsSelection();
-    
+  // Function to update stats with specific text
+  function updateStatsWithText(text) {
     if (!text) {
       statsBox.style.display = 'none';
       return;
@@ -164,6 +127,15 @@ function initializeScript() {
     // Show the box
     statsBox.style.display = 'block';
     console.log('[Text Highlighter Stats - Google Docs] Stats box updated and displayed');
+  }
+  
+  // Function to update stats
+  function updateStats() {
+    console.log('[Text Highlighter Stats - Google Docs] Checking for selection');
+    
+    // Get text from Google Docs
+    const text = getGoogleDocsSelection();
+    updateStatsWithText(text);
   }
   
   // Function to check if elements exist
@@ -225,6 +197,26 @@ function initializeScript() {
     }
   }
   
+  // Set up a MutationObserver to watch for changes in the Google Docs editor
+  function setupMutationObserver() {
+    console.log('[Text Highlighter Stats - Google Docs] Setting up MutationObserver');
+    
+    // Create a MutationObserver to watch for changes in the Google Docs editor
+    const observer = new MutationObserver((mutations) => {
+      // Check if there's a selection when DOM changes
+      updateStats();
+    });
+    
+    // Start observing the document with the configured parameters
+    observer.observe(document.body, { 
+      childList: true, 
+      subtree: true,
+      characterData: true
+    });
+    
+    console.log('[Text Highlighter Stats - Google Docs] MutationObserver set up');
+  }
+  
   // Set up event listeners
   button.addEventListener('click', updateStats);
   document.addEventListener('mouseup', updateStats);
@@ -234,43 +226,13 @@ function initializeScript() {
     }
   });
   
-  // Try to add listeners to the editor iframe
-  function setupIframeListeners() {
-    const editorIframes = [
-      document.querySelector('.docs-texteventtarget-iframe'),
-      document.querySelector('.kix-appview-editor iframe'),
-      ...Array.from(document.querySelectorAll('iframe')).filter(iframe => 
-        iframe.id.includes('editor') || 
-        (iframe.className && iframe.className.includes('editor'))
-      )
-    ].filter(Boolean);
-    
-    for (const iframe of editorIframes) {
-      try {
-        const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
-        
-        iframeDocument.addEventListener('mouseup', updateStats);
-        iframeDocument.addEventListener('keyup', function(e) {
-          if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown', 'Shift'].includes(e.key)) {
-            updateStats();
-          }
-        });
-        
-        console.log('[Text Highlighter Stats - Google Docs] Added listeners to iframe:', iframe.id || 'unnamed iframe');
-      } catch (error) {
-        console.log('[Text Highlighter Stats - Google Docs] Error adding listeners to iframe:', error.message);
-      }
-    }
-  }
+  // Set up the MutationObserver
+  setupMutationObserver();
   
-  // Set up iframe listeners
-  setupIframeListeners();
-  
-  // Check periodically for selection, elements, and new iframes
+  // Check periodically for selection and elements
   setInterval(() => {
     updateStats();
     checkElements();
-    setupIframeListeners(); // Periodically try to set up iframe listeners in case new iframes are added
   }, 1000);
   
   console.log('[Text Highlighter Stats - Google Docs] Script is running');

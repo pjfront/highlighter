@@ -9,6 +9,9 @@
     "scripting",
     "tabs"
   ],
+  "optional_permissions": [
+    "clipboardRead"
+  ],
   "host_permissions": [
     "https://docs.google.com/*"
   ],
