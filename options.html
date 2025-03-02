@@ -83,6 +83,52 @@
       background-color: #d4edda;
       color: #155724;
     }
+    .tip-jar {
+      margin-top: 30px;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 5px;
+      text-align: center;
+    }
+    .tip-jar h2 {
+      color: #333;
+    }
+    .tip-jar p {
+      margin-bottom: 15px;
+    }
+    .tip-button {
+      display: inline-block;
+      background-color: #0070BA;
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .tip-button:hover {
+      background-color: #005ea6;
+    }
+    .kofi-button {
+      display: inline-block;
+      background-color: #FF5E5B;
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+    .kofi-button:hover {
+      background-color: #E54844;
+    }
+    .kofi-container {
+      margin-top: 15px;
+    }
+    .kofi-img {
+      vertical-align: middle;
+      margin-right: 8px;
+      height: 20px;
+    }
   </style>
 </head>
 <body>
@@ -149,6 +195,18 @@
   <button id="save">Save Options</button>
   
   <div id="status" class="status"></div>
+  
+  <!-- Tip Jar Section -->
+  <div class="tip-jar">
+    <h2>Support This Extension</h2>
+    <p>If you find this extension useful, consider supporting its development!</p>
+    <div class="kofi-container">
+      <a href="https://ko-fi.com/appvibin" target="_blank" class="kofi-button">
+        <img src="https://storage.ko-fi.com/cdn/cup-border.png" alt="Ko-fi" class="kofi-img">
+        Buy me a coffee
+      </a>
+    </div>
+  </div>
   
   <script src="options.js"></script>
 </body>

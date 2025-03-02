@@ -71,6 +71,22 @@ function updateStats() {
   charDiv.style.margin = '2px 0';
   statsBox.appendChild(charDiv);
   
+  // Add a small Ko-fi link
+  const supportDiv = document.createElement('div');
+  supportDiv.style.marginTop = '8px';
+  supportDiv.style.fontSize = '10px';
+  supportDiv.style.textAlign = 'right';
+  supportDiv.style.opacity = '0.7';
+  supportDiv.style.pointerEvents = 'auto';
+  supportDiv.style.cursor = 'pointer';
+  supportDiv.textContent = '☕ Support';
+  supportDiv.title = 'Support this extension on Ko-fi';
+  supportDiv.onclick = function(e) {
+    e.stopPropagation();
+    window.open('https://ko-fi.com/appvibin', '_blank');
+  };
+  statsBox.appendChild(supportDiv);
+  
   // Show the box
   statsBox.style.display = 'block';
   debugLog('Stats box updated and displayed');
@@ -104,6 +120,9 @@ function checkStatsBox() {
     newStatsBox.style.minWidth = '120px';
     newStatsBox.style.display = 'none';
     document.body.appendChild(newStatsBox);
+    
+    // We need to update stats to recreate the content
+    updateStats();
     
     debugLog('Stats box recreated');
   }
