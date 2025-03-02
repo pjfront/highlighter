@@ -30,12 +30,13 @@
     }
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "web_accessible_resources": [
     {
-      "resources": ["google-docs-simple.js"],
-      "matches": ["https://docs.google.com/*"]
+      "resources": ["google-docs-simple.js", "images/*"],
+      "matches": ["<all_urls>"]
     }
   ],
   "icons": {
