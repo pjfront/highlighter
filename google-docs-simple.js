@@ -1,6 +1,6 @@
-// Simple script for Google Docs text selection
+// Google Docs script for Text Highlighter Stats extension
 
-console.log('Google Docs Simple Script Loaded');
+console.log('[Text Highlighter Stats - Google Docs] Script loaded');
 
 // Create the stats box
 const statsBox = document.createElement('div');
@@ -44,10 +44,13 @@ function countWords(text) {
 
 // Function to update stats
 function updateStats() {
+  console.log('[Text Highlighter Stats - Google Docs] Checking for selection');
+  
+  // Try to get selection from the main window
   const selection = window.getSelection();
   const text = selection ? selection.toString() : '';
   
-  console.log('Selection text:', text ? text.substring(0, 20) + '...' : 'none');
+  console.log('[Text Highlighter Stats - Google Docs] Selection text:', text ? text.substring(0, 20) + '...' : 'none');
   
   if (!text) {
     statsBox.style.display = 'none';
@@ -87,4 +90,6 @@ document.addEventListener('keyup', function(e) {
 });
 
 // Check periodically
-setInterval(updateStats, 1000); 
+setInterval(updateStats, 1000);
+
+console.log('[Text Highlighter Stats - Google Docs] Script is running'); 

@@ -1,17 +1,39 @@
+/* Styles for Text Highlighter Stats extension */
+
 #highlighter-stats-box {
   position: fixed;
   top: 20px;
   right: 20px;
   padding: 10px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
   border-radius: 5px;
   font-family: Arial, sans-serif;
-  z-index: 9999999; /* Increased z-index to ensure visibility in Google Docs */
+  font-size: 14px;
+  z-index: 9999999;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
-  pointer-events: none; /* Allows clicking through the box */
-  user-select: none; /* Prevents selecting the box text */
-  min-width: 120px; /* Ensure the box has a minimum width */
-  text-align: left;
+  pointer-events: none;
+  user-select: none;
+  min-width: 120px;
+  transition: opacity 0.3s ease;
+}
+
+#gdocs-highlighter-stats-box {
+  position: fixed;
+  top: 60px;
+  right: 20px;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  border-radius: 5px;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  z-index: 9999999;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  user-select: none;
+  min-width: 120px;
+  transition: opacity 0.3s ease;
 }
 
 #highlighter-stats-box div {

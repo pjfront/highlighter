@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Text Highlighter Stats</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      width: 300px;
+      padding: 15px;
+    }
+    h1 {
+      font-size: 18px;
+      margin-top: 0;
+    }
+    button {
+      background-color: #4285F4;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px 0;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #3367d6;
+    }
+    .status {
+      margin: 10px 0;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 4px;
+    }
+    .debug-log {
+      margin-top: 15px;
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 12px;
+      background-color: #f9f9f9;
+    }
+    .log-entry {
+      margin-bottom: 5px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Text Highlighter Stats</h1>
+  
+  <div class="status" id="status">
+    Checking status...
+  </div>
+  
+  <button id="injectScript">Inject Google Docs Script</button>
+  <button id="checkSelection">Check Current Selection</button>
+  <button id="clearLogs">Clear Debug Logs</button>
+  
+  <div class="debug-log" id="debugLog">
+    <div class="log-entry">Debug logs will appear here...</div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html> 
