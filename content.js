@@ -1,11 +1,11 @@
-// Content script for Text Highlighter Stats extension
+// Content script for Text Highlighter Counter extension
 
 // Debug mode
 const DEBUG = true;
 
 function debugLog(...args) {
   if (DEBUG) {
-    console.log('[Text Highlighter Stats - Content]', ...args);
+    console.log('[Text Highlighter Counter - Content]', ...args);
   }
 }
 

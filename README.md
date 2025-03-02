@@ -1,4 +1,4 @@
-# Text Highlighter Stats
+# Text Highlighter Counter
 
 A Chrome extension that shows word and character counts of highlighted text.
 
