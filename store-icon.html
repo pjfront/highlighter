@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Text Highlighter Counter - Store Icon</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .icon-container {
+      width: 128px;
+      height: 128px;
+      position: relative;
+      margin: 20px 0;
+    }
+    canvas {
+      border: 1px solid #ddd;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #4285F4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 10px 0;
+    }
+    button:hover {
+      background-color: #3367D6;
+    }
+    .instructions {
+      max-width: 600px;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    a {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 8px 15px;
+      background-color: #34A853;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+    a:hover {
+      background-color: #2E8B57;
+    }
+  </style>
+</head>
+<body>
+  <h1>Text Highlighter Counter - Store Icon</h1>
+  
+  <div class="instructions">
+    <h2>Instructions:</h2>
+    <p>This tool generates a 128x128 icon for your Chrome Web Store listing. The icon follows Google's Material Design principles with a clean, modern look.</p>
+    <ol>
+      <li>Click the "Generate Icon" button below</li>
+      <li>Click the "Download Icon" link to save the icon</li>
+      <li>Use this icon when submitting your extension to the Chrome Web Store</li>
+    </ol>
+  </div>
+  
+  <div class="icon-container">
+    <canvas id="iconCanvas" width="128" height="128"></canvas>
+  </div>
+  
+  <button id="generateBtn">Generate Icon</button>
+  <a id="downloadLink" href="#" download="store-icon.png">Download Icon</a>
+  
+  <script>
+    document.getElementById('generateBtn').addEventListener('click', function() {
+      const canvas = document.getElementById('iconCanvas');
+      const ctx = canvas.getContext('2d');
+      const size = 128;
+      
+      // Clear canvas
+      ctx.clearRect(0, 0, size, size);
+      
+      // Draw background
+      ctx.fillStyle = '#4285F4';
+      roundedRect(ctx, 0, 0, size, size, 16);
+      
+      // Draw "H" letter
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 80px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('H', size/2, size/2 - 10);
+      
+      // Draw highlight bars
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      roundedRect(ctx, size * 0.25, size * 0.7, size * 0.5, size * 0.08, 4);
+      
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      roundedRect(ctx, size * 0.3, size * 0.85, size * 0.4, size * 0.05, 3);
+      
+      // Update download link
+      document.getElementById('downloadLink').href = canvas.toDataURL('image/png');
+    });
+    
+    // Helper function to draw rounded rectangles
+    function roundedRect(ctx, x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+      ctx.fill();
+    }
+    
+    // Generate icon on page load
+    window.onload = function() {
+      document.getElementById('generateBtn').click();
+    };
+  </script>
+</body>
+</html> 
