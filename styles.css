@@ -5,13 +5,16 @@
   padding: 10px;
   border-radius: 5px;
   font-family: Arial, sans-serif;
-  z-index: 9999;
+  z-index: 9999999; /* Increased z-index to ensure visibility in Google Docs */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   pointer-events: none; /* Allows clicking through the box */
   user-select: none; /* Prevents selecting the box text */
+  min-width: 120px; /* Ensure the box has a minimum width */
+  text-align: left;
 }
 
 #highlighter-stats-box div {
   margin: 2px 0;
+  white-space: nowrap; /* Prevent text wrapping */
 } 

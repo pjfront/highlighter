@@ -4,6 +4,7 @@
   "version": "1.0",
   "description": "Shows word and character count of highlighted text",
   "permissions": ["activeTab", "storage"],
+  "host_permissions": ["https://docs.google.com/*"],
   "action": {
     "default_icon": {
       "16": "images/icon16.png",
@@ -20,7 +21,13 @@
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"],
-      "css": ["styles.css"]
+      "css": ["styles.css"],
+      "all_frames": true
+    },
+    {
+      "matches": ["https://docs.google.com/document/*"],
+      "js": ["google-docs-content.js"],
+      "run_at": "document_end"
     }
   ],
   "icons": {

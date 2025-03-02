@@ -48,10 +48,8 @@ function hexToRgba(hex, opacity) {
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 }
 
-// Function to update the stats box
-function updateStatsBox(selection) {
-  const text = selection.toString();
-  
+// Function to update the stats box with text
+function updateStatsBoxWithText(text) {
   if (!text) {
     statsBox.style.display = 'none';
     return;
@@ -95,6 +93,12 @@ function updateStatsBox(selection) {
   }
 }
 
+// Function to update the stats box
+function updateStatsBox(selection) {
+  const text = selection.toString();
+  updateStatsBoxWithText(text);
+}
+
 // Function to position the stats box
 function positionStatsBox(event) {
   const selection = window.getSelection();
@@ -109,8 +113,62 @@ function positionStatsBox(event) {
   }
 }
 
+// Check if we're on Google Docs
+function isGoogleDocs() {
+  return window.location.hostname === 'docs.google.com';
+}
+
+// Function to handle Google Docs selection
+function handleGoogleDocsSelection() {
+  // Get the editor iframe
+  const editorIframe = document.querySelector('.docs-texteventtarget-iframe');
+  if (!editorIframe) return;
+  
+  try {
+    // Access the iframe content
+    const iframeDocument = editorIframe.contentDocument || editorIframe.contentWindow.document;
+    
+    // Get selection from the iframe
+    const iframeSelection = iframeDocument.getSelection();
+    if (iframeSelection && iframeSelection.toString()) {
+      updateStatsBox(iframeSelection);
+    }
+  } catch (e) {
+    console.error('Error accessing Google Docs iframe:', e);
+  }
+  
+  // Also check the main document selection as a fallback
+  const mainSelection = window.getSelection();
+  if (mainSelection && mainSelection.toString()) {
+    updateStatsBox(mainSelection);
+  }
+}
+
+// Function to observe DOM changes in Google Docs
+function observeGoogleDocs() {
+  // Create a MutationObserver to watch for changes in the Google Docs editor
+  const observer = new MutationObserver((mutations) => {
+    // Check if there's a selection when DOM changes
+    handleGoogleDocsSelection();
+  });
+  
+  // Start observing the document with the configured parameters
+  observer.observe(document.body, { 
+    childList: true, 
+    subtree: true,
+    characterData: true
+  });
+  
+  // Also add event listeners specific to Google Docs
+  document.addEventListener('keyup', handleGoogleDocsSelection);
+  document.addEventListener('mouseup', handleGoogleDocsSelection);
+  document.addEventListener('selectionchange', handleGoogleDocsSelection);
+}
+
 // Listen for text selection
 document.addEventListener('mouseup', function(event) {
+  if (isGoogleDocs()) return; // Skip for Google Docs, handled separately
+  
   const selection = window.getSelection();
   updateStatsBox(selection);
   positionStatsBox(event);
@@ -118,12 +176,23 @@ document.addEventListener('mouseup', function(event) {
 
 // Listen for keyup events to catch keyboard selections
 document.addEventListener('keyup', function(event) {
+  if (isGoogleDocs()) return; // Skip for Google Docs, handled separately
+  
   // Only process if it's a key that might affect selection
   if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown', 'Shift'].includes(event.key)) {
     const selection = window.getSelection();
     updateStatsBox(selection);
     positionStatsBox(event);
   }
+});
+
+// Listen for selection changes
+document.addEventListener('selectionchange', function(event) {
+  if (isGoogleDocs()) return; // Skip for Google Docs, handled separately
+  
+  const selection = window.getSelection();
+  updateStatsBox(selection);
+  positionStatsBox(event);
 });
 
 // Hide the stats box when clicking elsewhere with no selection
@@ -153,5 +222,20 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
   }
 });
 
+// Listen for the custom event from the Google Docs script
+document.addEventListener('googleDocsTextSelected', function(event) {
+  if (event.detail && event.detail.text) {
+    updateStatsBoxWithText(event.detail.text);
+  }
+});
+
 // Initialize
-loadSettings(); 
+loadSettings();
+
+// Set up Google Docs support if we're on Google Docs
+if (isGoogleDocs()) {
+  // Wait for the Google Docs interface to fully load
+  window.addEventListener('load', () => {
+    setTimeout(observeGoogleDocs, 2000); // Give Google Docs some time to initialize
+  });
+} 
