@@ -5,7 +5,8 @@
   "description": "Shows word and character counts of highlighted text",
   "permissions": [
     "activeTab",
-    "storage"
+    "storage",
+    "scripting"
   ],
   "action": {
     "default_icon": "images/icon.svg",
@@ -15,13 +16,15 @@
     "page": "options.html",
     "open_in_tab": true
   },
-  "content_scripts": [
+  "web_accessible_resources": [
     {
-      "matches": ["http://*/*", "https://*/*"],
-      "js": ["content.js"],
-      "css": ["styles.css"]
+      "resources": ["styles.css"],
+      "matches": ["<all_urls>"]
     }
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "icons": {
     "16": "images/icon16.png",
     "48": "images/icon48.png",
